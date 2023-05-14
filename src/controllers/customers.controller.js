@@ -25,7 +25,7 @@ export async function findCustomersById(req, res) {
     customer.rows[0].birthday = new Date(customer.rows[0].birthday).toISOString().split('T')[0];
     res.status(201).send(customer.rows[0]);
   } catch (err) {
-    res.status(400).send(err.message);
+    res.status(404).send(err.message);
   }
 }
 
