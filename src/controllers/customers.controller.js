@@ -76,7 +76,7 @@ export async function updateCustomer(req, res) {
       cpf: joi.string().required(),
       birthday: joi.string().pattern(/^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/, {
           name: "date yyyy/mm/dd",
-      }).required()
+      })
     })
   
     if(isNaN(cpf) || cpf.split('').length !== 11 || (phone.split('').length !== 11 && phone.split('').length !== 10)) return res.status(400).send("valores invalidos")
@@ -93,8 +93,7 @@ export async function updateCustomer(req, res) {
       // Implemente essa função também
     
       const cpfJaCadastrado = await db.query(`SELECT * FROM customers WHERE cpf=$1`, [cpf]);
-      console.log((cpfJaCadastrado.rows[0].id === id))
-      console.log(id)
+
       if(cpfJaCadastrado.rows[0].id !== id) return res.status(409).send("id de outro usuario ja cadastrado");
 
 
@@ -102,7 +101,7 @@ export async function updateCustomer(req, res) {
           [name, phone, cpf, birthday, id]);
       res.sendStatus(200);
     } catch (err) {
-      res.status(400).send(err.message);
+      res.status(500).send(err.message);
     }
   }
   
