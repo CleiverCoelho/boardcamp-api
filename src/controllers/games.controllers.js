@@ -26,7 +26,7 @@ export async function createGame(req, res) {
   if (validacao.error) {
       const errors = validacao.error.details.map((detail) => detail.message);
     return res.status(400).send(errors);
-  }
+  } 
   try {
     // Implemente essa função também
 

@@ -4,8 +4,8 @@ import joi from "joi";
 export async function findAllCustomers(req, res) {
 
     try {
-        console.log("EU TENTEI");
         const customers = await db.query("SELECT * FROM customers;");
+        customers.rows.forEach(customer => customer.birthday = new Date(customer.birthday).toISOString().split('T')[0])
         res.send(customers.rows);
         // res.send("ok")
     } catch (err) {
@@ -20,8 +20,10 @@ export async function findCustomersById(req, res) {
   try {
     // Implemente essa função
 
-    const product = await db.query(`SELECT * FROM produtos WHERE id=$1`, [id])
-    res.status(201).send(product.rows[0]);
+    const customer = await db.query(`SELECT * FROM customers WHERE id=$1`, [id])
+    // trata a data de aniversario para o jeito esperado pela requisicao "yyyy/mm/dd"
+    customer.rows[0].birthday = new Date(customer.rows[0].birthday).toISOString().split('T')[0];
+    res.status(201).send(customer.rows[0]);
   } catch (err) {
     res.status(400).send(err.message);
   }
