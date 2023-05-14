@@ -37,7 +37,9 @@ export async function createRental(req, res) {
     const {customerId, gameId, daysRented} = req.body;
     if (isNaN(customerId) || isNaN(gameId)) return res.sendStatus(400);
 
-
+    try {
+    // Implemente essa função
+    // requisicao para realizar a verificacao do ids de customer e game
     const verificaCustomer = await db.query(`SELECT * FROM customers WHERE id=$1`, [customerId]);
     const verificaGame = await db.query(`SELECT * FROM games WHERE id=$1`, [gameId]);
     const verificaDisponibilidade = await db.query(`SELECT * FROM rentals WHERE "gameId"=$1`, [gameId])
@@ -51,15 +53,11 @@ export async function createRental(req, res) {
     })
     if(!verificaCustomer.rows[0]) return res.status(400).send("customer nao encontrado");
     if(!verificaGame.rows[0]) return res.status(400).send("game nao encontrado");
-
-    try {
-    // Implemente essa função
-    // requisicao para realizar a verificacao do ids de customer e game
     
     
-    const reponse = await db.query(`INSERT INTO rentals ("customerId", "gameId", "daysRented", "originalPrice", "rentDate", "delayFee", "returnDate")
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `, [customerId, gameId, daysRented, daysRented * verificaGame.rows[0].pricePerDay, new Date(), null, null]);
+    await db.query(`INSERT INTO rentals ("customerId", "gameId", "daysRented", "originalPrice", "rentDate")
+        VALUES ($1, $2, $3, $4, $5)
+    `, [customerId, gameId, daysRented, daysRented * verificaGame.rows[0].pricePerDay, new Date()]);
     res.status(201);
     } catch (err) {
     res.status(404).send(err.message);

@@ -86,16 +86,13 @@ export async function updateCustomer(req, res) {
         const errors = validacao.error.details.map((detail) => detail.message);
       return res.status(400).send(errors);
     }
+    const cpfJaCadastrado = await db.query(`SELECT * FROM customers WHERE cpf=$1`, [cpf]);
 
+    if(cpfJaCadastrado.rows[0].id !== id) return res.status(409).send("id de outro usuario ja cadastrado");
     
   
     try {
       // Implemente essa função também
-    
-      const cpfJaCadastrado = await db.query(`SELECT * FROM customers WHERE cpf=$1`, [cpf]);
-
-      if(cpfJaCadastrado.rows[0].id !== id) return res.status(409).send("id de outro usuario ja cadastrado");
-
 
       await db.query(`UPDATE customers SET name=$1, phone=$2, cpf=$3, birthday=$4 WHERE id=$5`,
           [name, phone, cpf, birthday, id]);
