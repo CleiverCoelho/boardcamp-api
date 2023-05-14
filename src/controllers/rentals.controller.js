@@ -32,20 +32,38 @@ export async function findAllRentals(req, res) {
     }
 }
 
-export async function findCustomersById(req, res) {
-  const id = Number(req.params.id);
-  if (isNaN(id)) return res.sendStatus(400);
+export async function createRental(req, res) {
 
-  try {
+    const {customerId, gameId, daysRented} = req.body;
+    if (isNaN(customerId) || isNaN(gameId)) return res.sendStatus(400);
+
+
+    const verificaCustomer = await db.query(`SELECT * FROM customers WHERE id=$1`, [customerId]);
+    const verificaGame = await db.query(`SELECT * FROM games WHERE id=$1`, [gameId]);
+    const verificaDisponibilidade = await db.query(`SELECT * FROM rentals WHERE "gameId"=$1`, [gameId])
+
+    let openRentalsCounter = 0;
+    verificaDisponibilidade.rows.forEach(rental => {
+        if(rental.returnDate === null){
+            openRentalsCounter++;
+            if(openRentalsCounter === 3) return res.status(400).send("estoque indisponivel para o jogo");
+        }
+    })
+    if(!verificaCustomer.rows[0]) return res.status(400).send("customer nao encontrado");
+    if(!verificaGame.rows[0]) return res.status(400).send("game nao encontrado");
+
+    try {
     // Implemente essa função
-
-    const customer = await db.query(`SELECT * FROM customers WHERE id=$1`, [id])
-    // trata a data de aniversario para o jeito esperado pela requisicao "yyyy/mm/dd"
-    customer.rows[0].birthday = new Date(customer.rows[0].birthday).toISOString().split('T')[0];
-    res.status(201).send(customer.rows[0]);
-  } catch (err) {
+    // requisicao para realizar a verificacao do ids de customer e game
+    
+    
+    const reponse = await db.query(`INSERT INTO rentals ("customerId", "gameId", "daysRented", "originalPrice", "rentDate", "delayFee", "returnDate")
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `, [customerId, gameId, daysRented, daysRented * verificaGame.rows[0].pricePerDay, new Date(), null, null]);
+    res.status(201);
+    } catch (err) {
     res.status(404).send(err.message);
-  }
+    }
 }
 
   
