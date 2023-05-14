@@ -28,13 +28,35 @@ export async function findCustomersById(req, res) {
 }
 
 export async function createCustomer(req, res) {
-  const { nome, preco, condicao } = req.body;
+  const { name, phone, cpf, birthday} = req.body;
+
+  const useSchemaCadastro = joi.object({
+    name: joi.string().required(),
+    phone: joi.string().required(),
+    cpf: joi.string().required(),
+    birthday: joi.string().pattern(/^\d{4}\-(0[1-9]|1[012])\-(0[1-9]|[12][0-9]|3[01])$/, {
+        name: "date yyyy/mm/dd",
+    }).required()
+  })
+
+  if(isNaN(cpf) || cpf.split('').length !== 11 || (phone.split('').length !== 11 && phone.split('').length !== 10)) return res.status(400).send("valores invalidos")
+
+  const validacao = useSchemaCadastro.validate(req.body, {abortEarly: false})
+  if (validacao.error) {
+      const errors = validacao.error.details.map((detail) => detail.message);
+    return res.status(400).send(errors);
+  }
 
   try {
     // Implemente essa função também
 
-    await db.query(`INSERT INTO produtos (nome, preco, condicao) VALUES ($1, $2, $3)`, [nome, preco, condicao]);
-    res.sendStatus(200);
+    const cpfJaCadastrado = await db.query(`SELECT * FROM customers WHERE cpf=$1`, [cpf]);
+    console.log(cpfJaCadastrado)
+    if(cpfJaCadastrado.rowCount) return res.status(409).send("usuario ja cadastrado")
+
+    await db.query(`INSERT INTO customers (name, phone, cpf, birthday) VALUES ($1, $2, $3, $4)`, 
+        [name, phone, cpf, birthday]);
+    res.sendStatus(201);
   } catch (err) {
     res.status(500).send(err.message);
   }

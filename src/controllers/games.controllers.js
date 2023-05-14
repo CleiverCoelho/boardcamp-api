@@ -25,14 +25,14 @@ export async function createGame(req, res) {
   const validacao = useSchemaCadastro.validate(req.body, {abortEarly: false})
   if (validacao.error) {
       const errors = validacao.error.details.map((detail) => detail.message);
-    return res.status(422).send(errors);
+    return res.status(400).send(errors);
   }
   try {
     // Implemente essa função também
 
     const jaExisteJogo = await db.query(`SELECT * FROM games WHERE name=$1;`, [name])
-    if(jaExisteJogo) return res.status(409).send("Jogo ja cadastrado");
-
+    console.log(jaExisteJogo.rowCount);
+    if(jaExisteJogo.rowCount) return res.status(409).send("Jogo ja cadastrado");
     await db.query(`INSERT INTO games (name, image, "stockTotal", "pricePerDay") VALUES ($1, $2, $3, $4)`, 
       [name, image, stockTotal, pricePerDay]);
     res.sendStatus(201);
