@@ -1,3 +1,4 @@
+import joi from "joi";
 import { db } from "../database/db.js";
 
 export async function findAllGames(req, res) {
@@ -9,28 +10,29 @@ export async function findAllGames(req, res) {
   }
 }
 
-export async function findGamesById(req, res) {
-  const id = Number(req.params.id);
-  if (isNaN(id)) return res.sendStatus(400);
-
-  try {
-    // Implemente essa função
-
-    const product = await db.query(`SELECT * FROM produtos WHERE id=$1`, [id])
-    res.status(201).send(product.rows[0]);
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-}
 
 export async function createGame(req, res) {
-  const { nome, preco, condicao } = req.body;
+  const { name, image, stockTotal, pricePerDay } = req.body;
+  const useSchemaCadastro = joi.object({
+    name: joi.string().required(),
+    image: joi.string().required(),
+    stockTotal: joi.number().required(),
+    pricePerDay: joi.number().required()
+  })
 
+  if(pricePerDay <= 0 || stockTotal <= 0) return res.status(400).send("stock total e price per day menores que zero")
+
+  const validacao = useSchemaCadastro.validate(req.body, {abortEarly: false})
+  if (validacao.error) {
+      const errors = validacao.error.details.map((detail) => detail.message);
+    return res.status(422).send(errors);
+  }
   try {
     // Implemente essa função também
 
-    await db.query(`INSERT INTO produtos (nome, preco, condicao) VALUES ($1, $2, $3)`, [nome, preco, condicao]);
-    res.sendStatus(200);
+    await db.query(`INSERT INTO games (name, image, "stockTotal", "pricePerDay") VALUES ($1, $2, $3, $4)`, 
+      [name, image, stockTotal, pricePerDay]);
+    res.sendStatus(201);
   } catch (err) {
     res.status(500).send(err.message);
   }

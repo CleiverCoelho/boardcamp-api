@@ -1,12 +1,16 @@
 import { db } from "../database/db.js";
+import joi from "joi";
 
 export async function findAllCustomers(req, res) {
-  try {
-    const customers = await db.query("SELECT * FROM customers");
-    res.send(customers.rows);
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
+
+    try {
+        console.log("EU TENTEI");
+        const customers = await db.query("SELECT * FROM customers;");
+        res.send(customers.rows);
+        // res.send("ok")
+    } catch (err) {
+        res.status(400).send(err.message);
+    }
 }
 
 export async function findCustomersById(req, res) {
