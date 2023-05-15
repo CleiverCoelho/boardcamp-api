@@ -87,7 +87,7 @@ export async function updateCustomer(req, res) {
       return res.status(400).send(errors);
     }
     const cpfJaCadastrado = await db.query(`SELECT * FROM customers WHERE cpf=$1`, [cpf]);
-
+    // console.log(cpfJaCadastrado.rows[0])
     if(cpfJaCadastrado.rows[0].id !== id) return res.status(409).send("id de outro usuario ja cadastrado");
     
   

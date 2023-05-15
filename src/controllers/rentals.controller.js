@@ -35,32 +35,32 @@ export async function findAllRentals(req, res) {
 export async function createRental(req, res) {
 
     const {customerId, gameId, daysRented} = req.body;
-    if (isNaN(customerId) || isNaN(gameId)) return res.sendStatus(400);
+    // if (isNaN(customerId) || isNaN(gameId)) return res.sendStatus(400);
 
     try {
-    // Implemente essa função
-    // requisicao para realizar a verificacao do ids de customer e game
-    const verificaCustomer = await db.query(`SELECT * FROM customers WHERE id=$1`, [customerId]);
-    const verificaGame = await db.query(`SELECT * FROM games WHERE id=$1`, [gameId]);
-    const verificaDisponibilidade = await db.query(`SELECT * FROM rentals WHERE "gameId"=$1`, [gameId])
+        // Implemente essa função
+        // requisicao para realizar a verificacao do ids de customer e game
+        const verificaCustomer = await db.query(`SELECT * FROM customers WHERE id=$1`, [customerId]);
+        const verificaGame = await db.query(`SELECT * FROM games WHERE id=$1`, [gameId]);
+        const verificaDisponibilidade = await db.query(`SELECT * FROM rentals WHERE "gameId"=$1`, [gameId]);
 
-    let openRentalsCounter = 0;
-    verificaDisponibilidade.rows.forEach(rental => {
-        if(rental.returnDate === null){
-            openRentalsCounter++;
-            if(openRentalsCounter === 3) return res.status(400).send("estoque indisponivel para o jogo");
-        }
-    })
-    if(!verificaCustomer.rows[0]) return res.status(400).send("customer nao encontrado");
-    if(!verificaGame.rows[0]) return res.status(400).send("game nao encontrado");
-    
-    
-    await db.query(`INSERT INTO rentals ("customerId", "gameId", "daysRented", "originalPrice", "rentDate")
-        VALUES ($1, $2, $3, $4, $5)
-    `, [customerId, gameId, daysRented, daysRented * verificaGame.rows[0].pricePerDay, new Date()]);
-    res.status(201);
+        let openRentalsCounter = 0;
+        verificaDisponibilidade.rows.forEach(rental => {
+            if(rental.returnDate === null){
+                openRentalsCounter++;
+                if(openRentalsCounter === verificaGame.rows[0].stockTotal){
+                    return
+                }
+            }
+        })
+        if(openRentalsCounter >= verificaGame.rows[0].stockTotal) return res.status(400).send("estoque indisponivel")
+        if(!verificaCustomer.rows[0] || !verificaGame.rows[0]) return res.status(400).send("customer ou game nao encontrado");
+        
+        const originalPrice = daysRented * verificaGame.rows[0].pricePerDay;
+        const resp = await db.query(`INSERT INTO rentals ("customerId", "gameId", "daysRented", "originalPrice", "rentDate") VALUES ($1, $2, $3, $4, $5)`, [customerId, gameId, daysRented, originalPrice, new Date()])
+        res.status(201).send("inserido com sucesso");
     } catch (err) {
-    res.status(404).send(err.message);
+        res.status(404).send(err.message);
     }
 }
 
