@@ -2,8 +2,18 @@ import joi from "joi";
 import { db } from "../database/db.js";
 
 export async function findAllGames(req, res) {
+
+  const {name} = req.query;
+
   try {
-    const products = await db.query("SELECT * FROM games");
+    let products;
+    if(name) {
+      // nao consegue colocar com % dentro da query entao coloca na lista de $n
+      products = await db.query(`SELECT * FROM games WHERE name LIKE $1`, [`${name}%`])
+
+    }else{
+      products = await db.query(`SELECT * FROM games;`)
+    }
     res.send(products.rows);
   } catch (err) {
     res.status(400).send(err.message);

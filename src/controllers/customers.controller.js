@@ -2,9 +2,16 @@ import { db } from "../database/db.js";
 import joi from "joi";
 
 export async function findAllCustomers(req, res) {
+    const {cpf} = req.query;
 
     try {
-        const customers = await db.query("SELECT * FROM customers;");
+      let customers;
+      if(cpf){
+        // se tiver query na requisicao ele usa para encontrar o padrao
+        customers = await db.query(`SELECT * FROM customers WHERE cpf LIKE $1`, [`${cpf}%`]);
+      }else{
+        customers = await db.query("SELECT * FROM customers");
+      }
         customers.rows.forEach(customer => customer.birthday = new Date(customer.birthday).toISOString().split('T')[0])
         res.send(customers.rows);
         // res.send("ok")
@@ -15,6 +22,7 @@ export async function findAllCustomers(req, res) {
 
 export async function findCustomersById(req, res) {
   const id = Number(req.params.id);
+
   if (isNaN(id)) return res.sendStatus(400);
 
   try {
