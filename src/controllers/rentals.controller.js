@@ -117,10 +117,9 @@ export async function deleteRental(req, res) {
         // requisicao para realizar a verificacao do ids de customer e game
         const verificaRental = await db.query(`SELECT * FROM rentals WHERE id=$1`, [id]);
         if(!verificaRental.rowCount) return res.status(404).send("aluguel nao existe")
-        if(!verificaRental.rows[0].returnDate) return res.status(400).send("aluguel ja foi finalizado")
+        if(!verificaRental.rows[0].returnDate) return res.status(400).send("aluguel ainda nao foi finalizado")
         
-        const updateRental = await db.query(`UPDATE rentals SET "delayFee"=$1, "returnDate"=$2 WHERE id=$3`,
-            [delayFee, returnDate, id])
+        const deleteRental = await db.query(`DELETE FROM rentals WHERE id=$1`, [id]);
         res.sendStatus(200);
     } catch (err) {
         res.status(404).send(err.message);
