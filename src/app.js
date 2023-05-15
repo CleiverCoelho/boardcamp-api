@@ -13,6 +13,6 @@ app.use(rentalsRouter);
 dotev.config()
 
 const port = process.env.PORT || 5000
-app.listen(PORT, () => {
-	console.log(`Servidor rodando na porta ${PORT}`)
+app.listen(port, () => {
+	console.log(`Servidor rodando na porta ${port}`)
 })
