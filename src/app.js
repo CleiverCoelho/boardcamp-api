@@ -4,6 +4,7 @@ import customerRouter from "./routers/customers.router.js";
 import rentalsRouter from "./routers/rentals.router.js";
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use(gamesRouter);
 app.use(customerRouter);
