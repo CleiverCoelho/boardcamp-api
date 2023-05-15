@@ -12,12 +12,14 @@ export async function findAllRentals(req, res) {
                     ON games.id=rentals."gameId"
                 JOIN customers 
                     ON customers.id=rentals."customerId";`);
+
+                console.log(customers.rows);
             
         const responsePattern = customers.rows.map(customer => {
             return ({
                 id: customer.id,
                 customerId: customer.customerId,
-                gameId: game.gameId,
+                gameId: customer.gameId,
                 rentDate: new Date(customer.rentDate).toISOString().split('T')[0],
                 daysRented: customer.daysRented,
                 returnDate: customer.returnDate,
@@ -37,7 +39,7 @@ export async function findAllRentals(req, res) {
 export async function createRental(req, res) {
 
     const {customerId, gameId, daysRented} = req.body;
-    // if (isNaN(customerId) || isNaN(gameId)) return res.sendStatus(400);
+    if (isNaN(customerId) || isNaN(gameId)) return res.sendStatus(400);
 
     try {
         // Implemente essa função
@@ -55,12 +57,15 @@ export async function createRental(req, res) {
                 }
             }
         })
+
         if(daysRented <= 0) return res.status(400).send("estoque indisponivel");
         if(openRentalsCounter >= verificaGame.rows[0].stockTotal) return res.status(400).send("estoque indisponivel");
-        if(!verificaCustomer.rows[0] || !verificaGame.rows[0]) return res.status(400).send("customer ou game nao encontrado");
-        
+        if(!verificaCustomer.rows[0])return res.status(400).send("customer nao encontrado");
+        if(!verificaGame.rows[0]) return res.status(400).send("game nao encontrado");   
+
         const originalPrice = daysRented * verificaGame.rows[0].pricePerDay;
-        const resp = await db.query(`INSERT INTO rentals ("customerId", "gameId", "daysRented", "originalPrice", "rentDate") VALUES ($1, $2, $3, $4, $5)`, [customerId, gameId, daysRented, originalPrice, new Date()])
+        const resp = await db.query(`INSERT INTO rentals ("customerId", "gameId", "daysRented", "originalPrice", "rentDate") 
+            VALUES ($1, $2, $3, $4, $5)`, [customerId, gameId, daysRented, originalPrice, new Date()])
         res.status(201).send("inserido com sucesso");
     } catch (err) {
         res.status(404).send(err.message);
