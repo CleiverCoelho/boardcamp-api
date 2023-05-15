@@ -16,6 +16,8 @@ export async function findAllRentals(req, res) {
         const responsePattern = customers.rows.map(customer => {
             return ({
                 id: customer.id,
+                customerId: customer.customerId,
+                gameId: game.gameId,
                 rentDate: new Date(customer.rentDate).toISOString().split('T')[0],
                 daysRented: customer.daysRented,
                 returnDate: customer.returnDate,
@@ -53,7 +55,8 @@ export async function createRental(req, res) {
                 }
             }
         })
-        if(openRentalsCounter >= verificaGame.rows[0].stockTotal) return res.status(400).send("estoque indisponivel")
+        if(daysRented <= 0) return res.status(400).send("estoque indisponivel");
+        if(openRentalsCounter >= verificaGame.rows[0].stockTotal) return res.status(400).send("estoque indisponivel");
         if(!verificaCustomer.rows[0] || !verificaGame.rows[0]) return res.status(400).send("customer ou game nao encontrado");
         
         const originalPrice = daysRented * verificaGame.rows[0].pricePerDay;
