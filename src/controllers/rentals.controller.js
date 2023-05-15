@@ -91,16 +91,17 @@ export async function closeRental(req, res) {
         
         const daysRented = verificaRental.rows[0].daysRented;
         const originalPrice = verificaRental.rows[0].originalPrice;
+        const pricePerDelay = originalPrice / daysRented;
         let delayFee = 0;
         if(diffDays > daysRented){
-            delayFee = (diffDays - daysRented) * originalPrice;
+            delayFee = (diffDays - daysRented) * pricePerDelay;
         }
 
         if(delayFee <= 0) {
             delayFee = null;
         }
-        console.log(diffDays);
-        console.log(delayFee);
+        // console.log(diffDays);
+        // console.log(delayFee);
         const updateRental = await db.query(`UPDATE rentals SET "delayFee"=$1, "returnDate"=$2 WHERE id=$3`,
             [delayFee, returnDate, id])
         res.sendStatus(200);
