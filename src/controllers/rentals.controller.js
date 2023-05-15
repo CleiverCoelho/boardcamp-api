@@ -72,4 +72,40 @@ export async function createRental(req, res) {
     }
 }
 
+export async function closeRental(req, res) {
+
+    const id = Number(req.params.id);
+    if(isNaN(id)) return res.sendStatus(400);
+
+    try {
+        // Implemente essa função
+        // requisicao para realizar a verificacao do ids de customer e game
+        const verificaRental = await db.query(`SELECT * FROM rentals WHERE id=$1`, [id]);
+        if(!verificaRental.rowCount) return res.status(400).send("aluguel nao existe")
+        if(verificaRental.rows[0].returnDate) return res.status(400).send("aluguel ja foi finalizado")
+        
+        const rentDate = verificaRental.rows[0].rentDate;
+        const returnDate = new Date();
+        const timeDiff = Math.abs(returnDate.getTime() - rentDate.getTime());
+        const diffDays = Math.floor(timeDiff / (1000 * 3600 * 24)); 
+        
+        const daysRented = verificaRental.rows[0].daysRented;
+        const originalPrice = verificaRental.rows[0].originalPrice;
+        let delayFee = 0;
+        if(diffDays > daysRented){
+            delayFee = (diffDays - daysRented) * originalPrice;
+        }
+
+        if(delayFee === 0) {
+            delayFee = null;
+        }
+        const updateRental = await db.query(`UPDATE rentals SET "delayFee"=$1, "returnDate"=$2 WHERE id=$3`,
+            [delayFee, returnDate, id])
+        res.sendStatus(200);
+    } catch (err) {
+        res.status(404).send(err.message);
+    }
+}
+
+
   
