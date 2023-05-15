@@ -3,6 +3,8 @@ import joi from "joi";
 
 export async function findAllRentals(req, res) {
 
+    const {status, startDate} = req.query;
+
     try {
         const customers = await db.query(`
             SELECT customers.name AS customer, customers.id AS "customerId", 
@@ -11,11 +13,48 @@ export async function findAllRentals(req, res) {
                 JOIN games 
                     ON games.id=rentals."gameId"
                 JOIN customers 
-                    ON customers.id=rentals."customerId";`);
-
-                console.log(customers.rows);
+                    ON customers.id=rentals."customerId"
+                WHERE rentals."rentDate">$1`, [`${startDate ? startDate : "2000-01-01"}`]);
             
         const responsePattern = customers.rows.map(customer => {
+            if(status === "open"){
+                if(customer.returnDate === null){
+                    return ({
+                        id: customer.id,
+                        customerId: customer.customerId,
+                        gameId: customer.gameId,
+                        rentDate: new Date(customer.rentDate).toISOString().split('T')[0],
+                        daysRented: customer.daysRented,
+                        returnDate: customer.returnDate,
+                        originalPrice: customer.originalPrice,
+                        delayFee: customer.delayFee,
+                        customer: {id: customer.customerId, name: customer.customer},
+                        game: {id: customer.gameId, name: customer.game} 
+                    })
+                }else {
+                    return
+                }
+            }
+            if(status === "closed"){
+                if(customer.returnDate !== null){
+                    return ({
+                        id: customer.id,
+                        customerId: customer.customerId,
+                        gameId: customer.gameId,
+                        rentDate: new Date(customer.rentDate).toISOString().split('T')[0],
+                        daysRented: customer.daysRented,
+                        returnDate: customer.returnDate,
+                        originalPrice: customer.originalPrice,
+                        delayFee: customer.delayFee,
+                        customer: {id: customer.customerId, name: customer.customer},
+                        game: {id: customer.gameId, name: customer.game} 
+                    })
+                }  else {
+                    return
+                }
+            }
+
+            // caso status nao receba parametro na query ele retorna tudo sempre
             return ({
                 id: customer.id,
                 customerId: customer.customerId,
@@ -30,7 +69,9 @@ export async function findAllRentals(req, res) {
             })
         })
         
-        res.send(responsePattern);
+        // filter vai retornar apenas valores !== null que vieram do map
+        const filteredResponsePattern = responsePattern.filter((obj => obj))
+        res.send(filteredResponsePattern);
     } catch (err) {
         res.status(400).send(err.message);
     }

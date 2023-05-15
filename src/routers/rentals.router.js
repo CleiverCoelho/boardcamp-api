@@ -3,7 +3,7 @@ import { closeRental, createRental, deleteRental, findAllRentals } from "../cont
 
 const rentalsRouter = Router();
 
-rentalsRouter.get("/rentals", findAllRentals);
+rentalsRouter.get("/rentals/", findAllRentals);
 rentalsRouter.post("/rentals", createRental);
 rentalsRouter.post("/rentals/:id/return", closeRental);
 rentalsRouter.delete("/rentals/:id", deleteRental);
