@@ -87,7 +87,7 @@ export async function closeRental(req, res) {
         const rentDate = verificaRental.rows[0].rentDate;
         const returnDate = new Date();
         const timeDiff = Math.abs(returnDate.getTime() - rentDate.getTime());
-        const diffDays = Math.floor(timeDiff / (1000 * 3600 * 24)); 
+        const diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
         
         const daysRented = verificaRental.rows[0].daysRented;
         const originalPrice = verificaRental.rows[0].originalPrice;
@@ -99,6 +99,8 @@ export async function closeRental(req, res) {
         if(delayFee === 0) {
             delayFee = null;
         }
+
+        console.log(delayFee);
         const updateRental = await db.query(`UPDATE rentals SET "delayFee"=$1, "returnDate"=$2 WHERE id=$3`,
             [delayFee, returnDate, id])
         res.sendStatus(200);
