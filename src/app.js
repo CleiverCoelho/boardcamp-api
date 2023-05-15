@@ -9,6 +9,9 @@ app.use(gamesRouter);
 app.use(customerRouter);
 app.use(rentalsRouter);
 
-app.listen(5000, () => {
-  console.log("Server listening on port 5000.");
-});
+dotev.config()
+
+const port = process.env.PORT || 5000
+app.listen(PORT, () => {
+	console.log(`Servidor rodando na porta ${PORT}`)
+})
